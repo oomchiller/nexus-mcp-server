@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "nexus": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/path/to/nexus-mcp-server",
+        "run",
+        "nexus-mcp-server",
+        "--transport",
+        "stdio",
+        "--nexus-url",
+        "https://nexus.example.com",
+        "--nexus-username",
+        "readonly-user"
+      ],
+      "env": {
+        "NEXUS_PASSWORD": "replace-with-secret",
+        "NEXUS_ALLOWED_HOSTS": "nexus.example.com",
+        "NEXUS_MCP_MODE": "readonly",
+        "NEXUS_MCP_ENABLE_RAW_API": "false",
+        "NEXUS_MCP_ENABLE_WRITE_TOOLS": "false"
+      }
+    }
+  }
+}
