@@ -318,6 +318,17 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Verify Nexus TLS certificates; overrides NEXUS_VERIFY_TLS",
     )
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="HTTP bind host for sse or streamable-http transport",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="HTTP bind port for sse or streamable-http transport",
+    )
     return parser
 
 
@@ -334,6 +345,9 @@ def apply_cli_overrides(args: argparse.Namespace) -> None:
 def main() -> None:
     args = build_parser().parse_args()
     apply_cli_overrides(args)
+    if args.transport != "stdio":
+        mcp.settings.host = args.host
+        mcp.settings.port = args.port
     settings = get_settings()
     setup_logging(settings.nexus_log_level, settings.all_secrets)
     logger.info(

@@ -11,6 +11,8 @@ def test_cli_defaults_to_stdio() -> None:
 
     assert args.transport == "stdio"
     assert args.verify_ssl is None
+    assert args.host == "127.0.0.1"
+    assert args.port == 8000
 
 
 def test_cli_overrides_nexus_connection(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -21,6 +23,8 @@ def test_cli_overrides_nexus_connection(monkeypatch: pytest.MonkeyPatch) -> None
         nexus_url="https://nexus.example",
         nexus_username="reader",
         verify_ssl=False,
+        host="127.0.0.1",
+        port=8000,
     )
 
     apply_cli_overrides(args)
