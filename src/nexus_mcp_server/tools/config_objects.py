@@ -6,7 +6,7 @@ from ..models import CleanupPolicy, RoutingRule, ContentSelector
 async def list_cleanup_policies(client: NexusClient) -> List[CleanupPolicy]:
     """List all cleanup policies."""
     try:
-        data = await client.request("GET", "/service/rest/v1/cleanup")
+        data = await client.request("GET", "/service/rest/v1/cleanup-policies")
     except NexusNotFoundError:
         return []
     return [CleanupPolicy(**item) for item in data]
