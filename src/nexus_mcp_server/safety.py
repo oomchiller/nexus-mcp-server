@@ -30,6 +30,9 @@ def validate_operation(
     if is_raw_api and not settings.nexus_mcp_enable_raw_api:
         raise SafetyError("Raw API calls are disabled. Enable NEXUS_MCP_ENABLE_RAW_API to use them.")
 
+    if is_raw_api and settings.nexus_mcp_raw_api_get_only and method != "GET":
+        raise SafetyError("Raw API is configured for GET requests only.")
+
     # Write operation check
     is_write = method in ("POST", "PUT", "DELETE")
 

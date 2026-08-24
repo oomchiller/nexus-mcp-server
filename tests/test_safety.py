@@ -25,6 +25,22 @@ def test_validate_operation_raw_api_disabled() -> None:
     with pytest.raises(SafetyError, match="Raw API calls are disabled"):
         validate_operation(settings, "GET", is_raw_api=True)
 
+
+def test_validate_operation_raw_api_get_only() -> None:
+    settings = Settings.model_validate(
+        {
+            "NEXUS_URL": "http://loc",
+            "NEXUS_MCP_ENABLE_RAW_API": True,
+            "NEXUS_MCP_RAW_API_GET_ONLY": True,
+        }
+    )
+
+    validate_operation(settings, "GET", is_raw_api=True)
+
+    for method in ("HEAD", "POST", "PUT", "DELETE"):
+        with pytest.raises(SafetyError, match="GET requests only"):
+            validate_operation(settings, method, is_raw_api=True)
+
 def test_validate_path_safety() -> None:
     # Valid path
     assert validate_path("/service/rest/v1/repositories") == "/service/rest/v1/repositories"

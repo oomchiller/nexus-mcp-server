@@ -39,6 +39,7 @@ class Settings(BaseSettings):
 
     # Safety & Raw API
     nexus_mcp_enable_raw_api: bool = Field(default=False, alias="NEXUS_MCP_ENABLE_RAW_API")
+    nexus_mcp_raw_api_get_only: bool = Field(default=False, alias="NEXUS_MCP_RAW_API_GET_ONLY")
     nexus_mcp_enable_write_tools: bool = Field(default=False, alias="NEXUS_MCP_ENABLE_WRITE_TOOLS")
     nexus_mcp_max_page_size: int = Field(default=100, alias="NEXUS_MCP_MAX_PAGE_SIZE")
     nexus_mcp_max_raw_response_bytes: int = Field(default=1048576, alias="NEXUS_MCP_MAX_RAW_RESPONSE_BYTES")
