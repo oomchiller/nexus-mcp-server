@@ -252,6 +252,14 @@ async def build_knowledge_graph(client: NexusClient) -> KnowledgeGraph:
         )
         graph.add_relationship(GraphRelationship(source_id=instance_id, target_id=task_id, type=RelationshipType.RUNS_TASK))
 
+    if not repos and any((blobs, privs, roles, users, tasks)):
+        message = (
+            "Repository inventory is empty while other Nexus API domains returned data; "
+            "this may indicate permission-filtered repository visibility rather than an empty Nexus instance."
+        )
+        graph.add_warning(message)
+        graph.add_limitation(message)
+
     return graph
 
 

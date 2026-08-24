@@ -85,6 +85,44 @@ class OptionalEndpointFailureClient(Nexus370SparseClient):
         return await super().request(method, path)
 
 
+class PermissionFilteredRepositoryClient(Nexus370SparseClient):
+    async def request(self, method: str, path: str) -> Any:
+        if path == "/service/rest/swagger.json":
+            data = await super().request(method, path)
+            data["paths"].update(
+                {
+                    "/v1/security/users": {"get": {}},
+                    "/v1/security/roles": {"get": {}},
+                }
+            )
+            return data
+        if path == "/service/rest/v1/repositories":
+            return []
+        if path == "/service/rest/v1/security/users":
+            return [
+                {
+                    "userId": "readapi",
+                    "firstName": "readapi",
+                    "lastName": "readapi",
+                    "emailAddress": "infra@example.test",
+                    "source": "default",
+                    "status": "active",
+                    "roles": ["nx-readapi"],
+                }
+            ]
+        if path == "/service/rest/v1/security/roles":
+            return [
+                {
+                    "id": "nx-readapi",
+                    "source": "default",
+                    "name": "nx-readapi",
+                    "privileges": ["nx-repository-view-*-*-read"],
+                    "roles": [],
+                }
+            ]
+        return await super().request(method, path)
+
+
 def test_graph_tolerates_nexus_370_sparse_repository_list() -> None:
     graph = asyncio.run(build_knowledge_graph(Nexus370SparseClient()))  # type: ignore[arg-type]
 
@@ -116,6 +154,18 @@ def test_optional_endpoint_404_does_not_fail_graph_tools() -> None:
     assert "## Limitations" in catalog
     assert '"metadata"' in inventory
     assert "security_privileges unavailable" in "\n".join(graph.metadata["limitations"])
+
+
+def test_empty_repository_inventory_with_other_data_warns_permission_filtered() -> None:
+    graph = asyncio.run(build_knowledge_graph(PermissionFilteredRepositoryClient()))  # type: ignore[arg-type]
+
+    warning_text = "\n".join(graph.metadata["warnings"])
+    limitation_text = "\n".join(graph.metadata["limitations"])
+
+    assert "permission-filtered repository visibility" in warning_text
+    assert "permission-filtered repository visibility" in limitation_text
+    assert graph.get_entity("user:readapi") is not None
+    assert graph.get_entity("repo:central") is None
 
 
 def test_repository_detail_creates_blobstore_relationship() -> None:

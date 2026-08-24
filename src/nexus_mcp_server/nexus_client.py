@@ -68,6 +68,7 @@ class NexusClient:
                 verify=self.verify_tls,
                 timeout=self.timeout,
                 follow_redirects=True,
+                trust_env=False,
             )
         return self._client
 
