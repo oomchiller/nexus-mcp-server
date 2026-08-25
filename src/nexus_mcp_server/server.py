@@ -159,6 +159,24 @@ async def nexus_explain_storage_strategy() -> dict[str, Any]:
 # =============================================================================
 
 @mcp.tool()
+async def nexus_audit_repository_content(
+    repository: str,
+    max_pages: int = 100,
+    max_components: int = 5000,
+) -> dict[str, Any]:
+    """Collect a bounded complete repository component inventory server-side.
+
+    Continuation tokens never leave the server. The result includes every
+    component and asset reached, plus explicit completion and latest-download
+    evidence; incomplete results must not be used for retirement decisions.
+    """
+    client, _, _ = get_clients()
+    from .tools.repository_content import audit_repository_content
+    return _safe_output(
+        await audit_repository_content(client, repository, max_pages, max_components)
+    )
+
+@mcp.tool()
 async def nexus_generate_inventory_json() -> str:
     """Generate a structured JSON inventory of all core Nexus objects."""
     graph = await _get_graph()
