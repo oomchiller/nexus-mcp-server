@@ -88,3 +88,31 @@ async def test_raw_api_redacts_response_and_uses_canonical_path() -> None:
 
     assert client.calls[0]["path"] == "/service/rest/v1/repositories"
     assert result["data"] == {"token": "********", "message": "********"}
+
+
+@pytest.mark.asyncio
+async def test_write_tools_never_reach_nexus_without_both_gates() -> None:
+    gate_sets: list[dict[str, Any]] = [
+        {},
+        {"NEXUS_MCP_ENABLE_WRITE_TOOLS": True},
+        {"NEXUS_MCP_MODE": McpMode.ADMIN},
+        {"NEXUS_MCP_MODE": McpMode.AUDIT, "NEXUS_MCP_ENABLE_WRITE_TOOLS": True},
+    ]
+    for gates in gate_sets:
+        client: Any = RecordingClient()
+        settings = Settings.model_validate({"NEXUS_URL": "http://loc", **gates})
+
+        with pytest.raises(SafetyError):
+            await delete_repository(client, settings, "repo")
+        with pytest.raises(SafetyError):
+            await run_task(client, settings, "task")
+        raw_settings = Settings.model_validate(
+            {"NEXUS_URL": "http://loc", "NEXUS_MCP_ENABLE_RAW_API": True, **gates}
+        )
+        for method in ("POST", "PUT", "DELETE"):
+            with pytest.raises(SafetyError):
+                await call_raw_api(
+                    client, raw_settings, method, "/service/rest/v1/repositories"
+                )
+
+        assert client.calls == []

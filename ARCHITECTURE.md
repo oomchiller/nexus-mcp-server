@@ -4,7 +4,7 @@ This repository implements a Nexus-specific MCP server. The code should stay foc
 
 ## Runtime Entry Point
 
-`src/nexus_mcp_server/server.py` creates a FastMCP server, initializes Nexus clients from environment-backed settings, registers resources/tools/prompts, and starts stdio transport through `mcp.run()`.
+`src/nexus_mcp_server/server.py` creates a FastMCP server, initializes Nexus clients from environment-backed settings, registers tools, registers resources and prompts unless `NEXUS_MCP_ENABLE_RESOURCES` or `NEXUS_MCP_ENABLE_PROMPTS` is `false`, and starts stdio transport through `mcp.run()`.
 
 Current transport:
 

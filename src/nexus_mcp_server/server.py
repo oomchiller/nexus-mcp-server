@@ -1,11 +1,11 @@
 import argparse
 import json
 import os
-from typing import Optional, Literal, Any, Dict, List, TypeVar, cast
+from typing import Optional, Literal, Any, Awaitable, Callable, Dict, List, TypeVar, cast
 
 from mcp.server.fastmcp import FastMCP
 
-from .config import get_settings, reset_settings
+from .config import Settings, get_settings, reset_settings
 from .logging import setup_logging, get_logger
 from .nexus_client import NexusClient
 from .openapi import OpenApiHelper
@@ -65,10 +65,9 @@ def _safe_json(value: Any) -> str:
     return json.dumps(_safe_output(value), indent=2)
 
 # =============================================================================
-# RESOURCES (Read-only context)
+# RESOURCES (Read-only context, registered by register_optional_capabilities)
 # =============================================================================
 
-@mcp.resource("nexus://instance/summary")
 async def get_instance_summary_resource() -> str:
     """Get a high-level summary of the Nexus instance identity."""
     client, _, _ = get_clients()
@@ -76,7 +75,6 @@ async def get_instance_summary_resource() -> str:
     status = await get_system_status(client)
     return _safe_json(status)
 
-@mcp.resource("nexus://repositories")
 async def get_repositories_resource() -> str:
     """Live repository inventory context."""
     client, _, _ = get_clients()
@@ -84,7 +82,6 @@ async def get_repositories_resource() -> str:
     repos = await list_repositories(client)
     return _safe_json([r.model_dump() for r in repos])
 
-@mcp.resource("nexus://blobstores")
 async def get_blobstores_resource() -> str:
     """Live blob store inventory context."""
     client, _, _ = get_clients()
@@ -92,7 +89,6 @@ async def get_blobstores_resource() -> str:
     blobs = await list_blobstores(client)
     return _safe_json([b.model_dump() for b in blobs])
 
-@mcp.resource("nexus://tasks")
 async def get_tasks_resource() -> str:
     """Live scheduled tasks context."""
     client, _, _ = get_clients()
@@ -100,7 +96,6 @@ async def get_tasks_resource() -> str:
     tasks = await list_tasks(client)
     return _safe_json([t.model_dump() for t in tasks])
 
-@mcp.resource("nexus://cleanup-policies")
 async def get_cleanup_policies_resource() -> str:
     """Live cleanup policies context."""
     client, _, _ = get_clients()
@@ -108,7 +103,6 @@ async def get_cleanup_policies_resource() -> str:
     policies = await list_cleanup_policies(client)
     return _safe_json([p.model_dump() for p in policies])
 
-@mcp.resource("nexus://security/summary")
 async def get_security_summary_resource() -> str:
     """High-level security configuration summary."""
     client, _, _ = get_clients()
@@ -116,14 +110,12 @@ async def get_security_summary_resource() -> str:
     graph = await _get_graph()
     return _safe_json(QueryEngine(graph).explain_security_model())
 
-@mcp.resource("nexus://architecture")
 async def get_architecture_resource() -> str:
     """Generated architecture Markdown documentation."""
     graph = await _get_graph()
     from .docs_engine.generator import DocsGenerator
     return _safe_output(DocsGenerator(graph).generate_architecture_md())
 
-@mcp.resource("nexus://knowledge_graph")
 async def get_knowledge_graph_resource() -> str:
     """Full semantic Knowledge Graph representation."""
     graph = await _get_graph()
@@ -290,10 +282,9 @@ async def nexus_api_call(
     return _safe_output(await call_raw_api(client, settings, method, path, query, json_body))
 
 # =============================================================================
-# PROMPTS (Workflows)
+# PROMPTS (Workflows, registered by register_optional_capabilities)
 # =============================================================================
 
-@mcp.prompt()
 def nexus_audit_prompt() -> str:
     """Standard prompt for starting a Nexus audit workflow."""
     return (
@@ -305,7 +296,6 @@ def nexus_audit_prompt() -> str:
         "Do not describe the result as a complete security audit."
     )
 
-@mcp.prompt()
 def nexus_iac_drift_prompt() -> str:
     """Standard prompt for investigating configuration drift."""
     return (
@@ -313,6 +303,38 @@ def nexus_iac_drift_prompt() -> str:
         "Please ask the user for their declared state (JSON or YAML), "
         "then use 'nexus_compare_live_state_with_declared_state' to identify differences."
     )
+
+RESOURCES: tuple[tuple[str, Callable[[], Awaitable[str]]], ...] = (
+    ("nexus://instance/summary", get_instance_summary_resource),
+    ("nexus://repositories", get_repositories_resource),
+    ("nexus://blobstores", get_blobstores_resource),
+    ("nexus://tasks", get_tasks_resource),
+    ("nexus://cleanup-policies", get_cleanup_policies_resource),
+    ("nexus://security/summary", get_security_summary_resource),
+    ("nexus://architecture", get_architecture_resource),
+    ("nexus://knowledge_graph", get_knowledge_graph_resource),
+)
+
+PROMPTS: tuple[Callable[[], str], ...] = (
+    nexus_audit_prompt,
+    nexus_iac_drift_prompt,
+)
+
+
+def register_optional_capabilities(server: FastMCP, settings: Settings) -> None:
+    """Register resources and prompts unless disabled by settings.
+
+    Tools are always registered. Resources and prompts are optional because
+    gateways that prefix tool names per server do not prefix resource URIs or
+    prompt names, so several instances in one gateway collide on them.
+    """
+    if settings.nexus_mcp_enable_resources:
+        for uri, resource in RESOURCES:
+            server.resource(uri)(resource)
+    if settings.nexus_mcp_enable_prompts:
+        for prompt in PROMPTS:
+            server.prompt()(prompt)
+
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run the Nexus MCP server")
@@ -368,6 +390,7 @@ def main() -> None:
         mcp.settings.port = args.port
     settings = get_settings()
     setup_logging(settings.nexus_log_level, settings.all_secrets)
+    register_optional_capabilities(mcp, settings)
     logger.info(
         "Starting Nexus MCP Server in %s mode using %s transport",
         settings.nexus_mcp_mode,

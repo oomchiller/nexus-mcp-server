@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     nexus_mcp_max_page_size: int = Field(default=100, alias="NEXUS_MCP_MAX_PAGE_SIZE")
     nexus_mcp_max_raw_response_bytes: int = Field(default=1048576, alias="NEXUS_MCP_MAX_RAW_RESPONSE_BYTES")
 
+    # MCP surface
+    nexus_mcp_enable_prompts: bool = Field(default=True, alias="NEXUS_MCP_ENABLE_PROMPTS")
+    nexus_mcp_enable_resources: bool = Field(default=True, alias="NEXUS_MCP_ENABLE_RESOURCES")
+
     @property
     def allowed_hosts_list(self) -> list[str]:
         return [h.strip() for h in self.nexus_allowed_hosts.split(",") if h.strip()]

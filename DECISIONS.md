@@ -117,6 +117,27 @@ Consequence:
 
 - Do not add FastAPI/HTTP dependencies until HTTP transport is actually implemented.
 
+## Decision: Separate Switches For Prompts And Resources
+
+Rationale:
+
+- Gateways that host several instances of this server, such as the Docker MCP Gateway, prefix tool names per server but not prompt names or resource URIs. A second instance fails with a prompt or resource name collision.
+- Prompts and resources collide for different reasons (names versus URIs) and may be solved independently later, for example by instance-scoped resource URIs. Two switches, `NEXUS_MCP_ENABLE_PROMPTS` and `NEXUS_MCP_ENABLE_RESOURCES`, keep each choice explicit and follow the existing `NEXUS_MCP_ENABLE_*` naming. A single `NEXUS_MCP_TOOLS_ONLY` flag was rejected because it cannot express the partial cases.
+
+Enforcement:
+
+- Both switches default to `true`, so existing clients keep every prompt and resource.
+- Tools are always registered; their names and schemas do not depend on these switches.
+- Resources and prompts are registered in `main()` from settings, not at import time.
+
+Tradeoff:
+
+- Embedders that import `server.mcp` without calling `main()` must call `register_optional_capabilities()` themselves to get resources and prompts.
+
+Consequence:
+
+- Tools-only deployments set both switches to `false` instead of patching FastMCP registries.
+
 ## Decision: Evidence-Based Findings
 
 Rationale:

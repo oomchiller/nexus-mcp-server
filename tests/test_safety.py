@@ -108,3 +108,51 @@ def test_redact_secrets_recursively() -> None:
         },
         "items": [{"apiKey": "********"}],
     }
+
+
+def test_default_settings_reject_writes() -> None:
+    settings = Settings.model_validate({"NEXUS_URL": "http://loc"})
+
+    assert settings.nexus_mcp_mode == McpMode.READONLY
+    assert settings.nexus_mcp_enable_write_tools is False
+    for method in ("POST", "PUT", "DELETE"):
+        with pytest.raises(SafetyError, match="readonly mode"):
+            validate_operation(settings, method)
+
+
+@pytest.mark.parametrize("mode", [McpMode.READONLY, McpMode.AUDIT])
+def test_write_tools_flag_alone_does_not_allow_writes(mode: McpMode) -> None:
+    settings = Settings.model_validate(
+        {
+            "NEXUS_URL": "http://loc",
+            "NEXUS_MCP_MODE": mode,
+            "NEXUS_MCP_ENABLE_WRITE_TOOLS": True,
+        }
+    )
+
+    for method in ("POST", "PUT", "DELETE"):
+        with pytest.raises(SafetyError, match="not allowed"):
+            validate_operation(settings, method)
+
+
+def test_admin_mode_alone_does_not_allow_writes() -> None:
+    settings = Settings.model_validate(
+        {"NEXUS_URL": "http://loc", "NEXUS_MCP_MODE": McpMode.ADMIN}
+    )
+
+    for method in ("POST", "PUT", "DELETE"):
+        with pytest.raises(SafetyError, match="NEXUS_MCP_ENABLE_WRITE_TOOLS"):
+            validate_operation(settings, method)
+
+
+def test_admin_mode_with_write_tools_allows_writes() -> None:
+    settings = Settings.model_validate(
+        {
+            "NEXUS_URL": "http://loc",
+            "NEXUS_MCP_MODE": McpMode.ADMIN,
+            "NEXUS_MCP_ENABLE_WRITE_TOOLS": True,
+        }
+    )
+
+    for method in ("POST", "PUT", "DELETE"):
+        validate_operation(settings, method)

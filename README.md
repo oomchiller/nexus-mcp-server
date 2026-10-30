@@ -80,7 +80,10 @@ Supported variables:
 | `NEXUS_LOG_LEVEL` | Python log level | `INFO` |
 | `NEXUS_MCP_MODE` | `readonly`, `audit`, or `admin` | `readonly` |
 | `NEXUS_MCP_ENABLE_RAW_API` | Enable `nexus_api_call` | `false` |
+| `NEXUS_MCP_RAW_API_GET_ONLY` | Reject every raw API method except `GET` | `false` |
 | `NEXUS_MCP_ENABLE_WRITE_TOOLS` | Allow write execution in admin mode | `false` |
+| `NEXUS_MCP_ENABLE_PROMPTS` | Register MCP prompts | `true` |
+| `NEXUS_MCP_ENABLE_RESOURCES` | Register MCP resources | `true` |
 | `NEXUS_MCP_MAX_PAGE_SIZE` | Configured page-size limit | `100` |
 | `NEXUS_MCP_MAX_RAW_RESPONSE_BYTES` | Max response size enforced by client | `1048576` |
 
@@ -93,6 +96,26 @@ Not implemented:
 - Bearer token authentication.
 - Nexus user-token authentication.
 
+Every setting, including the instance URL, username, TLS verification and
+allowed hosts, can be supplied through the environment alone; no command-line
+arguments are required.
+
+### Tools-only mode
+
+Gateways that run several instances of this server side by side, such as the
+Docker MCP Gateway, prefix tool names per server but not prompt names or
+resource URIs, so a second instance fails with a prompt or resource name
+collision. Disable both to expose tools only:
+
+```bash
+NEXUS_MCP_ENABLE_PROMPTS=false
+NEXUS_MCP_ENABLE_RESOURCES=false
+```
+
+Tool names and schemas are the same in every mode.
+
+### Command-line options
+
 CLI connection options override the corresponding environment variables:
 
 ```text
@@ -104,6 +127,25 @@ CLI connection options override the corresponding environment variables:
 
 Keep `NEXUS_PASSWORD` in the environment instead of placing it in command-line
 arguments, where it may be visible in process listings.
+
+## Container Image
+
+The repository `Dockerfile` builds a stdio image that runs as an unprivileged
+user and is configured entirely through the environment:
+
+```bash
+docker build -t nexus-mcp-server .
+docker run --rm -i \
+  -e NEXUS_URL=https://nexus.example.com \
+  -e NEXUS_USERNAME=readonly-user \
+  -e NEXUS_PASSWORD \
+  -e NEXUS_ALLOWED_HOSTS=nexus.example.com \
+  -e NEXUS_MCP_ENABLE_PROMPTS=false \
+  -e NEXUS_MCP_ENABLE_RESOURCES=false \
+  nexus-mcp-server
+```
+
+The image defaults to `readonly` mode with write tools disabled.
 
 ## MCP Client Examples
 
