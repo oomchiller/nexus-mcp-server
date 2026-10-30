@@ -92,7 +92,6 @@ Current entities:
 - `Privilege`
 - `User`
 - `ContentSelector`
-- `Capability`
 
 Current relationships:
 
@@ -102,8 +101,6 @@ Current relationships:
 - `MEMBER_OF_GROUP`
 - `HAS_PRIVILEGE`
 - `ASSIGNED_ROLE`
-- `AFFECTS_REPOSITORY`
-- `AFFECTS_BLOBSTORE`
 - `RUNS_TASK`
 - `MANAGED_BY`
 
@@ -115,7 +112,7 @@ Current limitations:
 - no persistent cache;
 - optional collector failures are recorded in graph metadata as limitations;
 - core collector failures can still fail graph construction;
-- `Capability`, `AFFECTS_REPOSITORY`, and `AFFECTS_BLOBSTORE` are defined but not populated by the current builder.
+- collectors turn Nexus, transport and response-shape errors into limitations; programming errors propagate.
 
 ### `operational`
 
@@ -254,7 +251,7 @@ The HTTP client maps common HTTP status codes to custom exceptions.
 
 Known problems:
 
-- Several helper functions catch `Exception` and return `None`, hiding permission, server, validation, and connectivity failures.
+- Single-object helpers return `None` only for `404`; permission, server and connectivity failures raise.
 - Tool outputs do not share a common error/finding schema.
 
 ## Knowledge Graph Review
@@ -281,9 +278,6 @@ Keep:
 
 Simplify or remove:
 
-- `Capability`: defined but not populated; remove until there is a concrete Nexus capability reader.
-- `AFFECTS_REPOSITORY`: defined but not populated; remove until task/policy impact mapping is implemented.
-- `AFFECTS_BLOBSTORE`: defined but not populated; remove until task/blobstore impact mapping is implemented.
 - `MANAGED_BY`: currently used from instance to objects, but the name is directionally confusing. Consider replacing with `CONTAINS` or `HAS_OBJECT`.
 
 Do not add:

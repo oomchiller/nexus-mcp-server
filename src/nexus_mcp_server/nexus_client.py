@@ -137,7 +137,7 @@ class NexusClient:
             text = response.text
             try:
                 details = redact_secrets(response.json(), [self.password] if self.password else [])
-            except Exception:
+            except ValueError:
                 details = redact_secrets({"raw": text}, [self.password] if self.password else [])
 
             if status == 401:
@@ -158,7 +158,7 @@ class NexusClient:
 
         try:
             return response.json()
-        except Exception:
+        except ValueError:
             return response.text
 
     async def list_paginated(

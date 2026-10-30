@@ -1,7 +1,10 @@
 from collections.abc import Awaitable, Callable
 from typing import Any, Literal
 
-from ..errors import NexusApiError
+import httpx
+from pydantic import ValidationError
+
+from ..errors import NexusApiError, NexusMcpError
 from ..models import BlobStore, CleanupPolicy, ContentSelector, NexusTask, Privilege, Repository, Role, RoutingRule, User
 from ..nexus_client import NexusClient
 from ..tools.blobstores import list_blobstores
@@ -14,6 +17,17 @@ from .entities import EntityType, GraphEntity, GraphRelationship, RelationshipTy
 from .graph import KnowledgeGraph
 
 CollectorKind = Literal["core", "optional", "pro_only", "experimental"]
+
+# Nexus, transport and response-shape failures become collector limitations;
+# programming errors still propagate.
+COLLECTOR_ERRORS = (
+    NexusMcpError,
+    httpx.HTTPError,
+    ValidationError,
+    KeyError,
+    TypeError,
+    ValueError,
+)
 
 
 async def build_knowledge_graph(client: NexusClient) -> KnowledgeGraph:
@@ -305,7 +319,7 @@ async def _run_collector(
 
     try:
         result = await collect()
-    except Exception as exc:
+    except COLLECTOR_ERRORS as exc:
         message = f"{name} unavailable: {exc}"
         graph.record_collector(name, kind, "failed", message)
         graph.add_limitation(message)

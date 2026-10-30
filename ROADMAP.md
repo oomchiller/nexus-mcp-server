@@ -1,32 +1,19 @@
 # Roadmap
 
-This roadmap lists concrete work needed before a public GitHub release.
+This roadmap lists concrete work after the 0.1.0 public beta.
 
-## Release Blockers
+## Resolved For 0.1.0
 
-1. Decide the MCP tool surface.
+- Tool surface: the 17 registered tools are the public surface for 0.1.0; unregistered helpers stay internal (see `docs/HIDDEN_FUNCTIONALITY.md`).
+- Broad `except Exception` blocks were replaced: single-object helpers return `None` only for `404`, graph collectors record a listed set of Nexus, transport and response-shape errors as limitations.
+- Unused graph concepts `Capability`, `AFFECTS_REPOSITORY` and `AFFECTS_BLOBSTORE` were removed.
+- Compatibility: production use on Nexus Pro 3.96.1-01 in read-only mode is documented.
 
-   Current problem: many helper functions exist but are not registered as MCP tools.
+## Before 1.0
 
-   Expected result: either expose useful helpers such as component/asset search and migration readiness, or remove dead helper code.
-
-2. Replace broad `except Exception` blocks.
-
-   Current problem: some helpers return `None` for permission, validation, server, and connectivity failures.
-
-   Expected result: not-found cases are handled explicitly; operational failures are surfaced.
-
-3. Validate Nexus OSS 3.90 and 3.92 compatibility.
-
-   Current problem: compatibility beyond OSS 3.70 is inferred from OpenAPI-tolerant behavior, not verified against live instances or fixtures.
-
-   Expected result: compatibility fixtures or live validation notes for OSS 3.90 and 3.92.
-
-4. Remove or implement unused graph concepts.
-
-   Current problem: `Capability`, `AFFECTS_REPOSITORY`, and `AFFECTS_BLOBSTORE` are defined but not populated.
-
-   Expected result: unused concepts are removed, or implemented with tests and documentation.
+- Validate Nexus OSS 3.90 and 3.92 with live instances or fixtures.
+- Exercise admin write tools against a live non-production instance.
+- Optionally hide write tools from the tool list while write gates are closed.
 
 ## Short-Term Improvements
 
@@ -40,7 +27,6 @@ This roadmap lists concrete work needed before a public GitHub release.
 ## Documentation Work
 
 - Add tested MCP client configuration examples for Claude Desktop, Codex CLI, and Gemini CLI when exact supported formats are known.
-- Document tested Nexus Repository Manager versions.
 - Document required Nexus privileges for each resource/tool group.
 - Document known OSS vs Pro endpoint differences after testing.
 

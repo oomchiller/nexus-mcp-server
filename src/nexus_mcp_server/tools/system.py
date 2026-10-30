@@ -1,4 +1,6 @@
 from typing import Dict, Any
+
+from ..errors import NexusApiError
 from ..nexus_client import NexusClient
 
 async def get_system_status(client: NexusClient) -> Dict[str, Any]:
@@ -20,7 +22,7 @@ async def readiness_basic_check(client: NexusClient) -> Dict[str, Any]:
     try:
         await client.request("GET", "/service/rest/v1/repositories")
         api_ok = True
-    except Exception:
+    except NexusApiError:
         api_ok = False
 
     return {

@@ -1,4 +1,6 @@
 from typing import List, Optional
+from urllib.parse import quote
+
 from ..errors import NexusNotFoundError
 from ..nexus_client import NexusClient
 from ..models import CleanupPolicy, RoutingRule, ContentSelector
@@ -19,9 +21,9 @@ async def list_routing_rules(client: NexusClient) -> List[RoutingRule]:
 async def get_routing_rule(client: NexusClient, name: str) -> Optional[RoutingRule]:
     """Get a specific routing rule by name."""
     try:
-        data = await client.request("GET", f"/service/rest/v1/routing-rules/{name}")
+        data = await client.request("GET", f"/service/rest/v1/routing-rules/{quote(name, safe='')}")
         return RoutingRule(**data)
-    except Exception:
+    except NexusNotFoundError:
         return None
 
 async def list_content_selectors(client: NexusClient) -> List[ContentSelector]:

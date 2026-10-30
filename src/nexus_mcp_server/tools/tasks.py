@@ -1,4 +1,7 @@
 from typing import List, Optional
+from urllib.parse import quote
+
+from ..errors import NexusNotFoundError
 from ..nexus_client import NexusClient
 from ..models import NexusTask
 
@@ -20,7 +23,7 @@ async def list_tasks(client: NexusClient) -> List[NexusTask]:
 async def get_task(client: NexusClient, task_id: str) -> Optional[NexusTask]:
     """Get details for a specific task."""
     try:
-        item = await client.request("GET", f"/service/rest/v1/tasks/{task_id}")
+        item = await client.request("GET", f"/service/rest/v1/tasks/{quote(task_id, safe='')}")
         return NexusTask(
             id=item["id"],
             name=item["name"],
@@ -29,5 +32,5 @@ async def get_task(client: NexusClient, task_id: str) -> Optional[NexusTask]:
             lastRunResult=item.get("lastRunResult"),
             nextRun=item.get("nextRun")
         )
-    except Exception:
+    except NexusNotFoundError:
         return None

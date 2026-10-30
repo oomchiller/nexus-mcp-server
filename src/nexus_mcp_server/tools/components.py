@@ -1,4 +1,7 @@
 from typing import List, Optional, Dict, Any
+from urllib.parse import quote
+
+from ..errors import NexusNotFoundError
 from ..nexus_client import NexusClient
 from ..models import Component
 
@@ -36,7 +39,7 @@ async def search_components(
 async def get_component(client: NexusClient, component_id: str) -> Optional[Component]:
     """Get details for a specific component."""
     try:
-        item = await client.request("GET", f"/service/rest/v1/components/{component_id}")
+        item = await client.request("GET", f"/service/rest/v1/components/{quote(component_id, safe='')}")
         return Component(
             id=item["id"],
             repository=item["repository"],
@@ -45,5 +48,5 @@ async def get_component(client: NexusClient, component_id: str) -> Optional[Comp
             name=item["name"],
             version=item.get("version")
         )
-    except Exception:
+    except NexusNotFoundError:
         return None

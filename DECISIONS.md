@@ -138,6 +138,21 @@ Consequence:
 
 - Tools-only deployments set both switches to `false` instead of patching FastMCP registries.
 
+## Decision: Public Tool Surface For 0.1.0
+
+Rationale:
+
+- The 17 registered tools are what current users depend on, and their names are part of client configuration (for example gateway-prefixed names).
+
+Enforcement:
+
+- Tool names and schemas stay stable within 0.x patch releases.
+- Unregistered helpers stay internal until they have tests, bounds and a defined use case (`docs/HIDDEN_FUNCTIONALITY.md`).
+
+Consequence:
+
+- Adding a tool is a minor release; renaming or removing one is called out in `CHANGELOG.md`.
+
 ## Decision: Evidence-Based Findings
 
 Rationale:

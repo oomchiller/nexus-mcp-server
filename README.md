@@ -18,14 +18,14 @@ This project is Nexus-specific. It is not a CMDB, generic infrastructure framewo
 
 The server is usable for read-only Nexus observation, inventory, graph-derived explanations, limited configuration audits, documentation generation, and basic IaC context generation.
 
-Current release target: GitHub beta.
+Current release: 0.1.0, public beta. See [CHANGELOG.md](CHANGELOG.md).
 
 Known limitations are tracked in [ROADMAP.md](ROADMAP.md):
 
 - Some helper functions are implemented as internal code but are intentionally not exposed as MCP tools.
 - Audit output is evidence-based but limited to REST-visible configuration and graph-derived operational findings.
 - Token authentication is not implemented.
-- Compatibility with Nexus OSS 3.90 and 3.92 is documented as inferred until tested against live instances or fixtures.
+- Used in production in read-only mode on Nexus Pro 3.96.1-01; partially verified on OSS 3.70; OSS 3.90 and 3.92 are inferred. See [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md).
 
 ## Installation
 
@@ -130,11 +130,11 @@ arguments, where it may be visible in process listings.
 
 ## Container Image
 
-The repository `Dockerfile` builds a stdio image that runs as an unprivileged
-user and is configured entirely through the environment:
+Release images are published to GitHub Container Registry for `linux/amd64`
+and `linux/arm64`. They run over stdio as an unprivileged user and are
+configured entirely through the environment:
 
 ```bash
-docker build -t nexus-mcp-server .
 docker run --rm -i \
   -e NEXUS_URL=https://nexus.example.com \
   -e NEXUS_USERNAME=readonly-user \
@@ -142,8 +142,10 @@ docker run --rm -i \
   -e NEXUS_ALLOWED_HOSTS=nexus.example.com \
   -e NEXUS_MCP_ENABLE_PROMPTS=false \
   -e NEXUS_MCP_ENABLE_RESOURCES=false \
-  nexus-mcp-server
+  ghcr.io/oomchiller/nexus-mcp-server:0.1.0
 ```
+
+To build the same image locally from `uv.lock`: `docker build -t nexus-mcp-server .`
 
 The image defaults to `readonly` mode with write tools disabled.
 

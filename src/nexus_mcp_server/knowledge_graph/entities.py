@@ -13,7 +13,6 @@ class EntityType(str, Enum):
     PRIVILEGE = "Privilege"
     USER = "User"
     CONTENT_SELECTOR = "ContentSelector"
-    CAPABILITY = "Capability"
 
 class GraphEntity(BaseModel):
     id: str  # Unique identifier within the graph (e.g., "repo:maven-central")
@@ -28,8 +27,6 @@ class RelationshipType(str, Enum):
     MEMBER_OF_GROUP = "MEMBER_OF_GROUP"
     HAS_PRIVILEGE = "HAS_PRIVILEGE"
     ASSIGNED_ROLE = "ASSIGNED_ROLE"
-    AFFECTS_REPOSITORY = "AFFECTS_REPOSITORY"
-    AFFECTS_BLOBSTORE = "AFFECTS_BLOBSTORE"
     RUNS_TASK = "RUNS_TASK"
     MANAGED_BY = "MANAGED_BY"
 

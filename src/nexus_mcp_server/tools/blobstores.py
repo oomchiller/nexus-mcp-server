@@ -1,4 +1,7 @@
 from typing import List, Optional, Dict, Any
+from urllib.parse import quote
+
+from ..errors import NexusNotFoundError
 from ..nexus_client import NexusClient
 from ..models import BlobStore
 
@@ -10,9 +13,9 @@ async def list_blobstores(client: NexusClient) -> List[BlobStore]:
 async def get_blobstore(client: NexusClient, name: str) -> Optional[BlobStore]:
     """Get details for a specific blob store."""
     try:
-        data = await client.request("GET", f"/service/rest/v1/blobstores/{name}")
+        data = await client.request("GET", f"/service/rest/v1/blobstores/{quote(name, safe='')}")
         return BlobStore(**data)
-    except Exception:
+    except NexusNotFoundError:
         return None
 
 async def generate_blobstore_usage_report(client: NexusClient) -> Dict[str, Any]:

@@ -1,8 +1,8 @@
 # Release Candidate Review
 
-Status: `READY_FOR_GITHUB_BETA`
+Status: `RELEASED_0.1.0_BETA`
 
-This status means the repository is suitable for public beta publication with clear limitations. It does not mean production-ready admin operation.
+This status means the repository is published as a public beta (0.1.0) with clear limitations. It does not mean production-ready admin operation.
 
 ## Architecture Audit
 
@@ -47,7 +47,6 @@ Current safety properties:
 Remaining risks:
 
 - least-privilege Nexus credentials are still required;
-- broad `except Exception` blocks remain in some unexposed helpers;
 - harmful tools are visible in the MCP tool list even when runtime gates block execution.
 
 ## MCP Surface Review
@@ -57,6 +56,7 @@ Keep:
 - `nexus_understand_architecture`
 - `nexus_explain_repository`
 - `nexus_explain_storage_strategy`
+- `nexus_audit_repository_content`
 - `nexus_generate_inventory_json`
 - `nexus_generate_architecture_md`
 - `nexus_generate_repository_catalog_md`
@@ -88,6 +88,6 @@ Read-only production observation: acceptable with a low-privilege account and ex
 
 Admin production operation: not recommended as a default. It requires explicit admin mode, write enablement, and operator review.
 
-Public GitHub beta: acceptable after CI and community files are present.
+Public GitHub beta: released as 0.1.0, with CI and a container image on GHCR.
 
-Production-ready release: requires live validation on Nexus OSS 3.90 and 3.92, stronger tests for malformed responses, and cleanup of broad exception handling in hidden helpers.
+Production-ready release: requires validation on Nexus OSS 3.90 and 3.92, admin tools exercised against a live instance, and stronger tests for malformed responses.
