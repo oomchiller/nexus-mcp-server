@@ -43,6 +43,6 @@ Not security boundaries:
 
 - Prefer a read-only Nexus account.
 - Set `NEXUS_ALLOWED_HOSTS` to the exact Nexus hostname.
-- Keep `NEXUS_VERIFY_TLS=true`.
+- Keep `NEXUS_VERIFY_TLS=true`; for a private CA set `NEXUS_CA_BUNDLE` instead of disabling verification.
 - Keep `NEXUS_MCP_ENABLE_RAW_API=false` unless needed for a reviewed task.
 - Keep `NEXUS_MCP_ENABLE_WRITE_TOOLS=false` unless an operator is intentionally using admin tools.

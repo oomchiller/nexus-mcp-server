@@ -1,5 +1,6 @@
 import asyncio
-from typing import Any, AsyncGenerator, Dict, Optional
+import ssl
+from typing import Any, AsyncGenerator, Dict, Optional, Union
 
 import httpx
 
@@ -12,6 +13,7 @@ from .errors import (
     NexusServerError,
     SafetyError,
 )
+from .config import load_ca_bundle
 from .logging import get_logger
 from .safety import redact_secrets
 
@@ -29,6 +31,7 @@ class NexusClient:
         timeout: int = 30,
         allowed_hosts: Optional[list[str]] = None,
         max_response_bytes: int = 1048576,
+        ca_bundle: Optional[str] = None,
     ):
         self.base_url = base_url.rstrip("/")
         self.username = username
@@ -37,6 +40,10 @@ class NexusClient:
         self.timeout = timeout
         self.allowed_hosts = allowed_hosts
         self.max_response_bytes = max_response_bytes
+        if ca_bundle and not verify_tls:
+            raise ValueError("A CA bundle requires TLS verification")
+        # trust_env stays off, so SSL_CERT_FILE is ignored; a private CA comes only from ca_bundle.
+        self._verify: Union[bool, ssl.SSLContext] = load_ca_bundle(ca_bundle) if ca_bundle else verify_tls
 
         self._validate_host(self.base_url)
 
@@ -65,7 +72,7 @@ class NexusClient:
             self._client = httpx.AsyncClient(
                 base_url=self.base_url,
                 auth=self.auth,
-                verify=self.verify_tls,
+                verify=self._verify,
                 timeout=self.timeout,
                 follow_redirects=True,
                 trust_env=False,

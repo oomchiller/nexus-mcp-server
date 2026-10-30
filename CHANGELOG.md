@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1 - 2026-10-30
+
+- `NEXUS_CA_BUNDLE` and `NEXUS_TARGET_CA_BUNDLE` (CLI `--ca-bundle`) trust a private CA from a PEM file, so TLS verification can stay on; the server still ignores `SSL_CERT_FILE`.
+- A missing or invalid bundle, or a bundle with verification disabled, stops the server at startup; the error names the variable and path, never other settings.
+
 ## 0.1.0 - 2026-10-30
 
 First public beta.

@@ -1,3 +1,4 @@
+import ssl
 from enum import Enum
 from typing import Optional
 from pydantic import Field, HttpUrl
@@ -25,6 +26,7 @@ class Settings(BaseSettings):
     nexus_username: Optional[str] = Field(default=None, alias="NEXUS_USERNAME")
     nexus_password: Optional[str] = Field(default=None, alias="NEXUS_PASSWORD")
     nexus_verify_tls: bool = Field(default=True, alias="NEXUS_VERIFY_TLS")
+    nexus_ca_bundle: Optional[str] = Field(default=None, alias="NEXUS_CA_BUNDLE")
     nexus_timeout_seconds: int = Field(default=30, alias="NEXUS_TIMEOUT_SECONDS")
     nexus_allowed_hosts: str = Field(default="localhost,127.0.0.1", alias="NEXUS_ALLOWED_HOSTS")
 
@@ -33,6 +35,7 @@ class Settings(BaseSettings):
     nexus_target_username: Optional[str] = Field(default=None, alias="NEXUS_TARGET_USERNAME")
     nexus_target_password: Optional[str] = Field(default=None, alias="NEXUS_TARGET_PASSWORD")
     nexus_target_verify_tls: bool = Field(default=True, alias="NEXUS_TARGET_VERIFY_TLS")
+    nexus_target_ca_bundle: Optional[str] = Field(default=None, alias="NEXUS_TARGET_CA_BUNDLE")
 
     # Logging
     nexus_log_level: str = Field(default="INFO", alias="NEXUS_LOG_LEVEL")
@@ -62,6 +65,31 @@ class Settings(BaseSettings):
         return secrets
 
 
+def load_ca_bundle(path: str, variable: str = "CA bundle") -> ssl.SSLContext:
+    """TLS context trusting only the certificates in a PEM bundle file."""
+    try:
+        return ssl.create_default_context(cafile=path)
+    except (OSError, ssl.SSLError) as error:
+        reason = getattr(error, "reason", None) or getattr(error, "strerror", None) or type(error).__name__
+        raise ValueError(f"{variable} cannot be loaded from {path}: {reason}") from None
+
+
+def check_tls_settings(settings: Settings) -> None:
+    """Fail at startup on an unusable CA bundle.
+
+    Runs outside pydantic validation, whose errors echo the input values,
+    passwords included.
+    """
+    for variable, bundle, verify in (
+        ("NEXUS_CA_BUNDLE", settings.nexus_ca_bundle, settings.nexus_verify_tls),
+        ("NEXUS_TARGET_CA_BUNDLE", settings.nexus_target_ca_bundle, settings.nexus_target_verify_tls),
+    ):
+        if bundle:
+            if not verify:
+                raise ValueError(f"{variable} is set but TLS verification is disabled")
+            load_ca_bundle(bundle, variable)
+
+
 _settings: Optional[Settings] = None
 
 
@@ -73,5 +101,7 @@ def reset_settings() -> None:
 def get_settings() -> Settings:
     global _settings
     if _settings is None:
-        _settings = Settings()  # type: ignore
+        settings = Settings()  # type: ignore
+        check_tls_settings(settings)
+        _settings = settings
     return _settings

@@ -71,12 +71,14 @@ Supported variables:
 | `NEXUS_USERNAME` | Username for Basic Auth | unset |
 | `NEXUS_PASSWORD` | Password for Basic Auth | unset |
 | `NEXUS_VERIFY_TLS` | Verify source TLS certificates | `true` |
+| `NEXUS_CA_BUNDLE` | PEM file of CA certificates to trust for the source instead of the bundled public roots; needs `NEXUS_VERIFY_TLS=true` | unset |
 | `NEXUS_TIMEOUT_SECONDS` | HTTP timeout in seconds | `30` |
 | `NEXUS_ALLOWED_HOSTS` | Comma-separated allowed Nexus hostnames | `localhost,127.0.0.1` |
 | `NEXUS_TARGET_URL` | Optional target Nexus URL for comparison code paths | unset |
 | `NEXUS_TARGET_USERNAME` | Optional target Basic Auth username | unset |
 | `NEXUS_TARGET_PASSWORD` | Optional target Basic Auth password | unset |
 | `NEXUS_TARGET_VERIFY_TLS` | Verify target TLS certificates | `true` |
+| `NEXUS_TARGET_CA_BUNDLE` | PEM file of CA certificates to trust for the target | unset |
 | `NEXUS_LOG_LEVEL` | Python log level | `INFO` |
 | `NEXUS_MCP_MODE` | `readonly`, `audit`, or `admin` | `readonly` |
 | `NEXUS_MCP_ENABLE_RAW_API` | Enable `nexus_api_call` | `false` |
@@ -123,7 +125,14 @@ CLI connection options override the corresponding environment variables:
 --nexus-url URL
 --nexus-username USERNAME
 --verify-ssl / --no-verify-ssl
+--ca-bundle PATH
 ```
+
+The server does not read `SSL_CERT_FILE` or the system trust store. For a
+Nexus behind a private CA, set `NEXUS_CA_BUNDLE` to a PEM file with that CA
+(the full bundle replaces the public roots) rather than disabling verification.
+An unreadable bundle, or a bundle with verification disabled, stops the server
+at startup.
 
 Keep `NEXUS_PASSWORD` in the environment instead of placing it in command-line
 arguments, where it may be visible in process listings.

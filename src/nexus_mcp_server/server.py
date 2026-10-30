@@ -34,6 +34,7 @@ def get_clients() -> tuple[NexusClient, Optional[NexusClient], OpenApiHelper]:
             timeout=settings.nexus_timeout_seconds,
             allowed_hosts=settings.allowed_hosts_list,
             max_response_bytes=settings.nexus_mcp_max_raw_response_bytes,
+            ca_bundle=settings.nexus_ca_bundle,
         )
         openapi_helper = OpenApiHelper(source_client)
 
@@ -46,6 +47,7 @@ def get_clients() -> tuple[NexusClient, Optional[NexusClient], OpenApiHelper]:
             timeout=settings.nexus_timeout_seconds,
             allowed_hosts=settings.allowed_hosts_list,
             max_response_bytes=settings.nexus_mcp_max_raw_response_bytes,
+            ca_bundle=settings.nexus_target_ca_bundle,
         )
 
     assert source_client is not None
@@ -359,6 +361,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Verify Nexus TLS certificates; overrides NEXUS_VERIFY_TLS",
     )
     parser.add_argument(
+        "--ca-bundle",
+        help="PEM bundle of CA certificates to trust for Nexus TLS; overrides NEXUS_CA_BUNDLE",
+    )
+    parser.add_argument(
         "--host",
         default="127.0.0.1",
         help="HTTP bind host for sse or streamable-http transport",
@@ -379,6 +385,8 @@ def apply_cli_overrides(args: argparse.Namespace) -> None:
         os.environ["NEXUS_USERNAME"] = args.nexus_username
     if args.verify_ssl is not None:
         os.environ["NEXUS_VERIFY_TLS"] = str(args.verify_ssl).lower()
+    if args.ca_bundle:
+        os.environ["NEXUS_CA_BUNDLE"] = args.ca_bundle
     reset_settings()
 
 

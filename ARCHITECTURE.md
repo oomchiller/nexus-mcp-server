@@ -24,8 +24,8 @@ Owns runtime settings loaded from environment variables and optional `.env`.
 
 Implemented settings include:
 
-- source Nexus URL, Basic Auth credentials, TLS verification, timeout, and allowed hosts;
-- optional target Nexus URL and Basic Auth credentials;
+- source Nexus URL, Basic Auth credentials, TLS verification and CA bundle, timeout, and allowed hosts;
+- optional target Nexus URL, Basic Auth credentials and CA bundle;
 - MCP mode and enablement flags for raw API and write tools;
 - response-size and page-size limits.
 
